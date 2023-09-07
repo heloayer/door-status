@@ -17,8 +17,6 @@ The program converts the given hex code to informative data of:
 Libraries being used:
 - "encoding/hex"
 -	"fmt"
--	"log"
--	"strconv"
 
 
 ## Installation

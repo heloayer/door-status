@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"log"
-	"strconv"
 )
 
 type Result struct {
@@ -19,44 +17,44 @@ func Decode(hexStr string) (*Result, error) {
 		return nil, err
 	}
 
-	// fmt.Println(bytes)
+	fmt.Println(bytes)
 	result := &Result{}
 
 	for i := 0; i < len(bytes); i++ {
-		channel := bytes[i]
-		var checkType string
-		var conv int
-
-		switch channel {
+		temperatureBytes := bytes[2:4] // для подсчета значения температуры
+		temperatureInt := int(temperatureBytes[0])<<8 + int(temperatureBytes[1])
+		switch bytes[i] {
 		case 0x03: // Температура
-			checkType = strconv.FormatInt(int64(bytes[i+1]), 16) // проверяем тип канала
-			conv, err = strconv.Atoi(checkType)
-			if err != nil {
-				log.Fatal("couldn't convert channel type")
-			}
-			if conv == 67 {
-				result.Temperature = float64(int16(bytes[3])<<8|int16(bytes[2])) / 10.0
+
+			if bytes[i+1] == 0x67 { // если тип канала Temperature соответствует
+				if bytes[i+2] == 0xFF { // отрицательное значение температуры
+
+					temperatureInt = ^temperatureInt + 1
+					result.Temperature = float64((temperatureInt ^ 0xFFFF + 1))
+				} else { // положительное значение температуры
+					result.Temperature = float64(int16(bytes[3])<<8|int16(bytes[2])) / 10.0
+				}
 			} else {
-				fmt.Println("wrong channel type for temperature")
+				fmt.Println("ERROR: Wrong channel type for Temperature")
 			}
 
 		case 0x04: // Влажность
-			checkType = strconv.FormatInt(int64(bytes[i+1]), 16)
-			conv, err = strconv.Atoi(checkType)
-			if err != nil {
-				log.Fatal("couldn't convert humidity channel type")
-			}
-			if conv == 68 {
+
+			if bytes[i+1] == 0x68 { // если тип канала Humidity соответствует
 				result.Humidity = float64(int(bytes[6])) / 2.0 // Формула: Humidity = 130 / 2.0
 			} else {
-				fmt.Println("wrong channel type for humidity")
+				fmt.Println("ERROR: Wrong channel type for Humidity")
 			}
 
 		case 0x06: // Магнитный статус
-			if bytes[i+2] == 1 {
-				result.MagneticStatus = "Open"
+			if bytes[i+1] == 0x00 {
+				if bytes[i+2] == 0x01 { // проверяем значение канала
+					result.MagneticStatus = "Open"
+				} else {
+					result.MagneticStatus = "Closed"
+				}
 			} else {
-				result.MagneticStatus = "Closed"
+				fmt.Println("ERROR: Wrong channel type for Magnetic Status")
 			}
 		}
 	}
@@ -65,7 +63,8 @@ func Decode(hexStr string) (*Result, error) {
 
 func main() {
 
-	hexStr := "0367F600046882060001"
+	hexStr := "0367F600046882060001" //
+	// hexStr := "0367FFE1046882060001" // hex код с отрицательной температурой (-31)
 	result, err := Decode(hexStr)
 	if err != nil {
 		fmt.Println("Error:", err)
