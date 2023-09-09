@@ -11,12 +11,13 @@ type Result struct {
 	MagneticStatus string
 }
 
+// Decode выводит информацию из заданного hexadecimal кода
 func Decode(hexStr string) (*Result, error) {
 	bytes, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(bytes)
 	result := &Result{}
 
 	for i := 0; i < len(bytes); i++ {
@@ -28,18 +29,18 @@ func Decode(hexStr string) (*Result, error) {
 				if bytes[i+2] == 0xFF { // если отрицательная температура
 					// если длина байта последнего значения отрицательной температуры больше 1, то форма FFFFFF
 					if len(string(bytes[i+4])) != 1 {
-						triple_F_type := bytes[3:5]
+						triple_F_type := bytes[i+3 : i+5] // определяем диапазон значений для формата
 						negative_temp := int(triple_F_type[0])<<8 + int(triple_F_type[1])
 						negative_temp = ^negative_temp + 1
 						result.Temperature = float64((negative_temp ^ 0xFFFF + 1))
 					} else { // форма FFFF
-						two_F_type := bytes[2:4]
+						two_F_type := bytes[i+2 : i+4]
 						negative_temp := int(two_F_type[0])<<8 + int(two_F_type[1])
 						negative_temp = ^negative_temp + 1
 						result.Temperature = float64((negative_temp ^ 0xFFFF + 1))
 					}
 				} else { // положительное значение температуры
-					result.Temperature = float64(int16(bytes[3])<<8|int16(bytes[2])) / 10.0
+					result.Temperature = float64(int16(bytes[i+3])<<8|int16(bytes[i+2])) / 10.0
 				}
 			} else {
 				fmt.Println("ERROR: Wrong channel type for Temperature")
