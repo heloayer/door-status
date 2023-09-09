@@ -17,7 +17,7 @@ func Decode(hexStr string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(bytes)
+	
 	result := &Result{}
 
 	for i := 0; i < len(bytes); i++ {
