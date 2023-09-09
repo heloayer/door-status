@@ -52,7 +52,9 @@ https://www.linkedin.com/in/ansarissabekov/
 
 ## Documentation
 
-[EM300 Series (Environment Monitoring Sensor)](https://resource.milesight-iot.com/milesight/document/em300-series-user-guide-en.pdf)
+[EM300 Series (Environment Monitoring Sensor)](https://resource.milesight-iot.com/milesight/document/em300-series-user-guide-en.pdf) 
+
+- Section “5.2 Sensor Data” explains how to decode the measurements the sensor sends.
 
 [EM300-MCS Overview](https://www.milesight-iot.com/lorawan/sensor/em300-mcs/)
 
